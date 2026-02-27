@@ -36,10 +36,17 @@ body{
   line-height:1.6;
 }
 
+/* JAM SEKARANG */
 .nowTime{
-  font-size:14px;
-  margin-bottom:8px;
-  color:#555;
+  font-size:20px;
+  font-weight:bold;
+  color:#333;
+}
+
+.nowDate{
+  font-size:13px;
+  color:#777;
+  margin-bottom:10px;
 }
 
 .small-btn{
@@ -87,7 +94,7 @@ button.main{
 
 .countdown{
   margin-top:10px;
-  font-size:18px;
+  font-size:20px;
   color:#2c7be5;
   font-weight:bold;
 }
@@ -114,8 +121,9 @@ Total kerja efektif: <b>7 jam 30 menit</b>
 </div>
 
 <div class="nowTime">
-Jam sekarang (WIB): <b id="currentTime">--:--</b>
+Jam sekarang (WIB): <span id="currentTime">--:--:--</span>
 </div>
+<div class="nowDate" id="currentDate"></div>
 
 <button class="small-btn" onclick="applyNowTime()">
 Gunakan Jam Sekarang
@@ -148,19 +156,34 @@ Tambah ke Google Calendar
 let countdownInterval=null;
 let targetEndTime=null;
 
-// ===== JAM SEKARANG WIB =====
 function getWIB(){
   return new Date(
     new Date().toLocaleString("en-US",{timeZone:"Asia/Jakarta"})
   );
 }
 
+// ===== JAM + TANGGAL WIB =====
 function updateClock(){
+
   const now=getWIB();
-  document.getElementById("currentTime").innerText =
-    String(now.getHours()).padStart(2,'0') + ":" +
-    String(now.getMinutes()).padStart(2,'0');
+
+  let h=String(now.getHours()).padStart(2,'0');
+  let m=String(now.getMinutes()).padStart(2,'0');
+  let s=String(now.getSeconds()).padStart(2,'0');
+
+  document.getElementById("currentTime").innerText=`${h}:${m}:${s}`;
+
+  const hari = now.toLocaleDateString("id-ID",{weekday:"long"});
+  const tanggal = now.toLocaleDateString("id-ID",{
+    day:"numeric",
+    month:"long",
+    year:"numeric"
+  });
+
+  document.getElementById("currentDate").innerText =
+    `${hari}, ${tanggal}`;
 }
+
 setInterval(updateClock,1000);
 updateClock();
 
@@ -195,12 +218,6 @@ function applyNowTime(){
 }
 
 
-// ===== FORMAT GOOGLE DATE =====
-function formatGoogleDate(date){
-  return date.toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";
-}
-
-
 // ===== COUNTDOWN =====
 function startCountdown(){
 
@@ -218,14 +235,22 @@ function startCountdown(){
       return;
     }
 
-    let totalMinutes=Math.floor(diff/60000);
-    let hours=Math.floor(totalMinutes/60);
-    let minutes=totalMinutes%60;
+    let totalSeconds=Math.floor(diff/1000);
+
+    let hours=Math.floor(totalSeconds/3600);
+    let minutes=Math.floor((totalSeconds%3600)/60);
+    let seconds=totalSeconds%60;
 
     document.getElementById("countdown").innerHTML=
-      `⏳ Pulang dalam ${hours} jam ${minutes} menit`;
+      `⏳ Pulang dalam ${hours} jam ${minutes} menit ${seconds} detik`;
 
   },1000);
+}
+
+
+// ===== FORMAT GOOGLE DATE =====
+function formatGoogleDate(date){
+  return date.toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";
 }
 
 
