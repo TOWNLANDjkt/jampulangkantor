@@ -23,7 +23,7 @@ body{
   border-radius:18px;
   box-shadow:0 15px 40px rgba(0,0,0,0.12);
   text-align:center;
-  width:440px;
+  width:460px;
 }
 
 h1{
@@ -41,22 +41,28 @@ h1{
 
 .row{
   display:flex;
-  gap:10px;
+  justify-content:center;
+  gap:8px;
 }
 
-select, button{
-  width:100%;
-  padding:14px;
-  margin-top:14px;
-  border-radius:10px;
+/* dropdown kecil */
+.small-select{
+  width:90px;
+  padding:10px;
+  border-radius:8px;
   border:1px solid #ddd;
-  font-size:18px;
+  font-size:16px;
 }
 
 button{
+  width:100%;
+  padding:14px;
+  margin-top:18px;
+  border-radius:10px;
+  border:none;
+  font-size:18px;
   background:#2c7be5;
   color:white;
-  border:none;
   cursor:pointer;
   font-weight:bold;
 }
@@ -68,6 +74,7 @@ button{
 }
 
 .label{
+  margin-top:15px;
   font-size:16px;
 }
 
@@ -88,10 +95,14 @@ Total kerja efektif: <b>7 jam 30 menit</b>
 </div>
 
 <div class="label">Jam Masuk</div>
-
 <div class="row">
-<select id="hour"></select>
-<select id="minute"></select>
+<select id="hour" class="small-select"></select>
+<select id="minute" class="small-select"></select>
+</div>
+
+<div class="label">Ekstra Istirahat (opsional)</div>
+<div class="row">
+<select id="extraBreak" class="small-select"></select>
 </div>
 
 <button onclick="calculate()">Hitung Jam Pulang</button>
@@ -106,7 +117,7 @@ Tambah ke Google Calendar
 
 <script>
 
-// ===== DROPDOWN JAM 01-24 =====
+// ===== JAM 01-24 =====
 const hourSelect = document.getElementById("hour");
 for(let h=1; h<=24; h++){
   let hh = String(h).padStart(2,'0');
@@ -115,11 +126,10 @@ for(let h=1; h<=24; h++){
   opt.text = hh;
   hourSelect.appendChild(opt);
 }
-
-// default jam expected
 hourSelect.value = "07";
 
-// ===== DROPDOWN MENIT 00-59 =====
+
+// ===== MENIT 00-59 =====
 const minuteSelect = document.getElementById("minute");
 for(let m=0; m<60; m++){
   let mm = String(m).padStart(2,'0');
@@ -128,8 +138,23 @@ for(let m=0; m<60; m++){
   opt.text = mm;
   minuteSelect.appendChild(opt);
 }
-
 minuteSelect.value = "30";
+
+
+// ===== EKSTRA ISTIRAHAT 0-60 MENIT =====
+const extraBreakSelect = document.getElementById("extraBreak");
+
+let opt0 = document.createElement("option");
+opt0.value = 0;
+opt0.text = "0 menit";
+extraBreakSelect.appendChild(opt0);
+
+for(let i=1; i<=60; i++){
+  let opt = document.createElement("option");
+  opt.value = i;
+  opt.text = i + " menit";
+  extraBreakSelect.appendChild(opt);
+}
 
 
 // ===== FORMAT GOOGLE DATE =====
@@ -138,42 +163,47 @@ function formatGoogleDate(date){
 }
 
 
-// ===== HITUNG JAM PULANG =====
+// ===== HITUNG =====
 function calculate(){
 
   let h = Number(hourSelect.value);
   let m = Number(minuteSelect.value);
+  let extraBreak = Number(extraBreakSelect.value);
 
   let start = new Date();
   start.setHours(h,m,0);
 
-  // tambah kerja efektif 7.5 jam
+  // kerja efektif 7.5 jam
   let end = new Date(start.getTime() + (7.5*60*60*1000));
 
-  // break tetap jam 12:00
+  // break tetap jam 12
   let breakStart = new Date(start);
   breakStart.setHours(12,0,0);
 
-  // jika melewati jam break → tambah 30 menit
   if(start < breakStart && end > breakStart){
     end = new Date(end.getTime() + (30*60*1000));
+  }
+
+  // tambah ekstra istirahat
+  if(extraBreak > 0){
+    end = new Date(end.getTime() + (extraBreak*60*1000));
   }
 
   let endH = String(end.getHours()).padStart(2,'0');
   let endM = String(end.getMinutes()).padStart(2,'0');
 
   document.getElementById("result").innerHTML =
-    `✅ Jam pulang kantor ${endH}:${endM}`;
+    `✅ Boleh pulang jam ${endH}:${endM}`;
 
-  // ===== GOOGLE CALENDAR LINK =====
+  // ===== GOOGLE CALENDAR =====
   let startISO = formatGoogleDate(start);
   let endISO = formatGoogleDate(end);
 
   let url =
   `https://calendar.google.com/calendar/render?action=TEMPLATE`+
-  `&text=Jam Kerja Ramadhan`+
+  `&text=Jam Pulang TownlandJKT (puasa version)`+
   `&dates=${startISO}/${endISO}`+
-  `&details=Kerja efektif 7.5 jam (Ramadhan)`+
+  `&details=Kerja Ramadhan 7.5 jam + ekstra istirahat`+
   `&ctz=Asia/Jakarta`;
 
   const btn = document.getElementById("calendarBtn");
