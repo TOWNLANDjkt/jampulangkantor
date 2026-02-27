@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ramadhan Work Calculator</title>
+
+<style>
+
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#eef2f6;
+  font-family:Arial, sans-serif;
+}
+
+/* CARD */
+.card{
+  background:white;
+  padding:50px;
+  border-radius:18px;
+  box-shadow:0 15px 40px rgba(0,0,0,0.12);
+  text-align:center;
+  width:420px;
+}
+
+/* TITLE */
+h1{
+  margin-top:0;
+  margin-bottom:10px;
+}
+
+/* INFO BOX */
+.info{
+  background:#f5f8ff;
+  border-radius:10px;
+  padding:15px;
+  font-size:14px;
+  margin-bottom:25px;
+  line-height:1.6;
+}
+
+/* INPUT */
+select, button{
+  width:100%;
+  padding:14px;
+  margin-top:14px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  font-size:18px;
+}
+
+/* BUTTON */
+button{
+  background:#2c7be5;
+  color:white;
+  border:none;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+/* RESULT */
+.result{
+  margin-top:25px;
+  font-size:24px;
+  font-weight:bold;
+}
+
+.label{
+  font-size:16px;
+  margin-top:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h1>🕌 Jam Pulang Ramadhan</h1>
+
+<div class="info">
+<b>Ketentuan Ramadhan:</b><br>
+Jam masuk expected: <b>07:30</b><br>
+Istirahat: <b>12:00 – 12:30 (30 menit)</b><br>
+Total kerja efektif: <b>7 jam 30 menit</b>
+</div>
+
+<div class="label">Pilih Jam Masuk</div>
+<select id="startTime"></select>
+
+<button onclick="calculate()">Hitung Jam Pulang</button>
+
+<div class="result" id="result"></div>
+
+</div>
+
+<script>
+
+// ===== DROPDOWN JAM =====
+const select = document.getElementById("startTime");
+
+for(let h=6; h<=12; h++){
+  for(let m of ["00","15","30","45"]){
+    let hh = String(h).padStart(2,'0');
+    let option = document.createElement("option");
+    option.value = `${hh}:${m}`;
+    option.text = `${hh}:${m}`;
+    select.appendChild(option);
+  }
+}
+
+
+// ===== HITUNG =====
+function calculate(){
+
+  const value = select.value;
+  let [h,m] = value.split(":").map(Number);
+
+  let start = new Date();
+  start.setHours(h,m,0);
+
+  // kerja 7.5 jam
+  let end = new Date(start.getTime() + (7.5*60*60*1000));
+
+  // break jam 12
+  let breakStart = new Date(start);
+  breakStart.setHours(12,0,0);
+
+  if(start < breakStart && end > breakStart){
+    end = new Date(end.getTime() + (30*60*1000));
+  }
+
+  let endH = String(end.getHours()).padStart(2,'0');
+  let endM = String(end.getMinutes()).padStart(2,'0');
+
+  document.getElementById("result").innerHTML =
+  `✅ Boleh pulang jam ${endH}:${endM}`;
+}
+
+</script>
+
+</body>
+</html>
