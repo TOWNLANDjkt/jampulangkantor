@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ramadhan Work Calculator</title>
+
+<!-- JUDUL TAB BROWSER -->
+<title>Jam Pulang TownlandJKT (puasa version)</title>
 
 <style>
 
@@ -45,7 +47,6 @@ h1{
   gap:8px;
 }
 
-/* dropdown kecil */
 .small-select{
   width:90px;
   padding:10px;
@@ -85,7 +86,8 @@ button{
 
 <div class="card">
 
-<h1>🕌 Jam Pulang Ramadhan</h1>
+<!-- JUDUL HALAMAN -->
+<h1>🕌 Jam Pulang TownlandJKT (puasa version)</h1>
 
 <div class="info">
 <b>Ketentuan Ramadhan:</b><br>
@@ -117,7 +119,7 @@ Tambah ke Google Calendar
 
 <script>
 
-// ===== JAM 01-24 =====
+// ===== JAM =====
 const hourSelect = document.getElementById("hour");
 for(let h=1; h<=24; h++){
   let hh = String(h).padStart(2,'0');
@@ -128,8 +130,7 @@ for(let h=1; h<=24; h++){
 }
 hourSelect.value = "07";
 
-
-// ===== MENIT 00-59 =====
+// ===== MENIT =====
 const minuteSelect = document.getElementById("minute");
 for(let m=0; m<60; m++){
   let mm = String(m).padStart(2,'0');
@@ -140,8 +141,7 @@ for(let m=0; m<60; m++){
 }
 minuteSelect.value = "30";
 
-
-// ===== EKSTRA ISTIRAHAT 0-60 MENIT =====
+// ===== EKSTRA ISTIRAHAT =====
 const extraBreakSelect = document.getElementById("extraBreak");
 
 let opt0 = document.createElement("option");
@@ -184,7 +184,7 @@ function calculate(){
     end = new Date(end.getTime() + (30*60*1000));
   }
 
-  // tambah ekstra istirahat
+  // ekstra istirahat
   if(extraBreak > 0){
     end = new Date(end.getTime() + (extraBreak*60*1000));
   }
@@ -192,10 +192,11 @@ function calculate(){
   let endH = String(end.getHours()).padStart(2,'0');
   let endM = String(end.getMinutes()).padStart(2,'0');
 
+  // TEXT DIGANTI DI SINI
   document.getElementById("result").innerHTML =
-    `✅ Boleh pulang jam ${endH}:${endM}`;
+    `✅ Jam pulang kantor ${endH}:${endM}`;
 
-  // ===== GOOGLE CALENDAR =====
+  // GOOGLE CALENDAR
   let startISO = formatGoogleDate(start);
   let endISO = formatGoogleDate(end);
 
