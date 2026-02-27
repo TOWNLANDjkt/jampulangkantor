@@ -18,6 +18,7 @@ body{
   font-family:Arial, sans-serif;
 }
 
+/* ===== NORMAL CARD ===== */
 .card{
   background:white;
   padding:50px;
@@ -26,6 +27,32 @@ body{
   text-align:center;
   width:460px;
 }
+
+/* ===== WIDGET MODE ===== */
+.widget body{
+  background:transparent;
+}
+
+.widget .card{
+  width:260px;
+  padding:20px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.18);
+}
+
+.widget .info,
+.widget .label,
+.widget select,
+.widget .small-btn,
+.widget button.main{
+  display:none;
+}
+
+.widget h1{
+  font-size:16px;
+  margin-bottom:10px;
+}
+
+/* ===== UI ===== */
 
 .info{
   background:#f5f8ff;
@@ -36,27 +63,15 @@ body{
   line-height:1.6;
 }
 
-/* JAM SEKARANG */
 .nowTime{
   font-size:20px;
   font-weight:bold;
-  color:#333;
 }
 
 .nowDate{
   font-size:13px;
   color:#777;
   margin-bottom:10px;
-}
-
-.small-btn{
-  font-size:12px;
-  padding:6px 10px;
-  margin-bottom:15px;
-  background:#e3e8ef;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
 }
 
 .row{
@@ -70,7 +85,16 @@ body{
   padding:10px;
   border-radius:8px;
   border:1px solid #ddd;
-  font-size:16px;
+}
+
+.small-btn{
+  font-size:12px;
+  padding:6px 10px;
+  margin-bottom:15px;
+  background:#e3e8ef;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
 }
 
 button.main{
@@ -83,25 +107,23 @@ button.main{
   background:#2c7be5;
   color:white;
   cursor:pointer;
-  font-weight:bold;
 }
 
 .result{
-  margin-top:25px;
-  font-size:24px;
+  margin-top:15px;
+  font-size:22px;
   font-weight:bold;
 }
 
 .countdown{
-  margin-top:10px;
-  font-size:20px;
+  margin-top:8px;
+  font-size:18px;
   color:#2c7be5;
   font-weight:bold;
 }
 
 .label{
   margin-top:12px;
-  font-size:16px;
 }
 
 </style>
@@ -111,13 +133,11 @@ button.main{
 
 <div class="card">
 
-<h1>🕌 Jam Pulang TownlandJKT (puasa version)</h1>
+<h1>🕌 Jam Pulang TownlandJKT</h1>
 
 <div class="info">
-<b>Ketentuan Ramadhan:</b><br>
 Jam masuk expected: <b>07:30</b><br>
-Istirahat: <b>12:00 – 12:30 (30 menit)</b><br>
-Total kerja efektif: <b>7 jam 30 menit</b>
+Break: 12:00–12:30
 </div>
 
 <div class="nowTime">
@@ -135,26 +155,27 @@ Gunakan Jam Sekarang
 <select id="minute" class="small-select"></select>
 </div>
 
-<div class="label">Ekstra Istirahat (opsional)</div>
+<div class="label">Ekstra Istirahat</div>
 <div class="row">
 <select id="extraBreak" class="small-select"></select>
 </div>
 
-<button class="main" onclick="calculate()">Hitung Jam Pulang</button>
+<button class="main" onclick="calculate()">Hitung</button>
 
 <div class="result" id="result"></div>
 <div class="countdown" id="countdown"></div>
-
-<button id="calendarBtn" class="main" style="display:none;">
-Tambah ke Google Calendar
-</button>
 
 </div>
 
 <script>
 
-let countdownInterval=null;
+/* ===== DETECT WIDGET MODE ===== */
+if(new URLSearchParams(window.location.search).get("widget")=="1"){
+  document.documentElement.classList.add("widget");
+}
+
 let targetEndTime=null;
+let countdownInterval=null;
 
 function getWIB(){
   return new Date(
@@ -162,133 +183,95 @@ function getWIB(){
   );
 }
 
-// ===== JAM + TANGGAL WIB =====
+/* ===== CLOCK ===== */
 function updateClock(){
-
   const now=getWIB();
 
-  let h=String(now.getHours()).padStart(2,'0');
-  let m=String(now.getMinutes()).padStart(2,'0');
-  let s=String(now.getSeconds()).padStart(2,'0');
+  document.getElementById("currentTime").innerText=
+    now.toLocaleTimeString("id-ID");
 
-  document.getElementById("currentTime").innerText=`${h}:${m}:${s}`;
-
-  const hari = now.toLocaleDateString("id-ID",{weekday:"long"});
-  const tanggal = now.toLocaleDateString("id-ID",{
-    day:"numeric",
-    month:"long",
-    year:"numeric"
-  });
-
-  document.getElementById("currentDate").innerText =
-    `${hari}, ${tanggal}`;
+  document.getElementById("currentDate").innerText=
+    now.toLocaleDateString("id-ID",
+      {weekday:"long",day:"numeric",month:"long",year:"numeric"});
 }
-
 setInterval(updateClock,1000);
 updateClock();
 
-
-// ===== DROPDOWN =====
-const hourSelect=document.getElementById("hour");
-for(let h=1;h<=24;h++){
-  let hh=String(h).padStart(2,'0');
-  hourSelect.add(new Option(hh,hh));
+/* ===== DROPDOWN ===== */
+const hour=document.getElementById("hour");
+for(let i=1;i<=24;i++){
+  let v=String(i).padStart(2,'0');
+  hour.add(new Option(v,v));
 }
-hourSelect.value="07";
+hour.value="07";
 
-const minuteSelect=document.getElementById("minute");
-for(let m=0;m<60;m++){
-  let mm=String(m).padStart(2,'0');
-  minuteSelect.add(new Option(mm,mm));
+const minute=document.getElementById("minute");
+for(let i=0;i<60;i++){
+  let v=String(i).padStart(2,'0');
+  minute.add(new Option(v,v));
 }
-minuteSelect.value="30";
+minute.value="30";
 
-const extraBreakSelect=document.getElementById("extraBreak");
-extraBreakSelect.add(new Option("0 menit",0));
+const extra=document.getElementById("extraBreak");
+extra.add(new Option("0 menit",0));
 for(let i=1;i<=60;i++){
-  extraBreakSelect.add(new Option(i+" menit",i));
+  extra.add(new Option(i+" menit",i));
 }
 
-
-// ===== APPLY JAM SEKARANG =====
+/* ===== APPLY NOW ===== */
 function applyNowTime(){
   const now=getWIB();
-  hourSelect.value=String(now.getHours()).padStart(2,'0');
-  minuteSelect.value=String(now.getMinutes()).padStart(2,'0');
+  hour.value=String(now.getHours()).padStart(2,'0');
+  minute.value=String(now.getMinutes()).padStart(2,'0');
 }
 
-
-// ===== COUNTDOWN =====
+/* ===== COUNTDOWN ===== */
 function startCountdown(){
 
-  if(countdownInterval) clearInterval(countdownInterval);
+  clearInterval(countdownInterval);
 
   countdownInterval=setInterval(()=>{
-
     const now=getWIB();
     let diff=targetEndTime-now;
 
     if(diff<=0){
       document.getElementById("countdown").innerHTML=
         "🟢 Sudah boleh pulang!";
-      clearInterval(countdownInterval);
       return;
     }
 
-    let totalSeconds=Math.floor(diff/1000);
-
-    let hours=Math.floor(totalSeconds/3600);
-    let minutes=Math.floor((totalSeconds%3600)/60);
-    let seconds=totalSeconds%60;
+    let s=Math.floor(diff/1000);
+    let h=Math.floor(s/3600);
+    let m=Math.floor((s%3600)/60);
+    let sec=s%60;
 
     document.getElementById("countdown").innerHTML=
-      `⏳ Pulang dalam ${hours} jam ${minutes} menit ${seconds} detik`;
-
+      `⏳ ${h}j ${m}m ${sec}d`;
   },1000);
 }
 
-
-// ===== FORMAT GOOGLE DATE =====
-function formatGoogleDate(date){
-  return date.toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";
-}
-
-
-// ===== HITUNG =====
+/* ===== CALCULATE ===== */
 function calculate(){
 
   const start=getWIB();
-  start.setHours(hourSelect.value,minuteSelect.value,0);
+  start.setHours(hour.value,minute.value,0);
 
   let end=new Date(start.getTime()+7.5*60*60*1000);
 
   let breakStart=new Date(start);
   breakStart.setHours(12,0,0);
 
-  if(start<breakStart && end>breakStart){
-    end=new Date(end.getTime()+30*60*1000);
-  }
+  if(start<breakStart && end>breakStart)
+    end=new Date(end.getTime()+30*60000);
 
-  end=new Date(end.getTime()+extraBreakSelect.value*60*1000);
+  end=new Date(end.getTime()+extra.value*60000);
 
   targetEndTime=end;
   startCountdown();
 
-  let endH=String(end.getHours()).padStart(2,'0');
-  let endM=String(end.getMinutes()).padStart(2,'0');
-
   document.getElementById("result").innerHTML=
-    `✅ Jam pulang kantor ${endH}:${endM}`;
-
-  let url=
-  `https://calendar.google.com/calendar/render?action=TEMPLATE`+
-  `&text=Jam Pulang TownlandJKT (puasa version)`+
-  `&dates=${formatGoogleDate(start)}/${formatGoogleDate(end)}`+
-  `&ctz=Asia/Jakarta`;
-
-  const btn=document.getElementById("calendarBtn");
-  btn.style.display="block";
-  btn.onclick=()=>window.open(url,"_blank");
+    "Jam pulang kantor "+
+    end.toLocaleTimeString("id-ID",{hour:'2-digit',minute:'2-digit'});
 }
 
 </script>
