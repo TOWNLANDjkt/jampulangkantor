@@ -78,7 +78,7 @@ button{
 
 <div class="card">
 
-<h1>🕌 Jam Pulang Ramadhan TOWNLANDJKT</h1>
+<h1>🕌 Jam Pulang Ramadhan</h1>
 
 <div class="info">
 <b>Ketentuan Ramadhan:</b><br>
@@ -98,6 +98,10 @@ Total kerja efektif: <b>7 jam 30 menit</b>
 
 <div class="result" id="result"></div>
 
+<button id="calendarBtn" style="display:none;">
+Tambah ke Google Calendar
+</button>
+
 </div>
 
 <script>
@@ -112,6 +116,9 @@ for(let h=1; h<=24; h++){
   hourSelect.appendChild(opt);
 }
 
+// default jam expected
+hourSelect.value = "07";
+
 // ===== DROPDOWN MENIT 00-59 =====
 const minuteSelect = document.getElementById("minute");
 for(let m=0; m<60; m++){
@@ -122,8 +129,16 @@ for(let m=0; m<60; m++){
   minuteSelect.appendChild(opt);
 }
 
+minuteSelect.value = "30";
 
-// ===== HITUNG =====
+
+// ===== FORMAT GOOGLE DATE =====
+function formatGoogleDate(date){
+  return date.toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";
+}
+
+
+// ===== HITUNG JAM PULANG =====
 function calculate(){
 
   let h = Number(hourSelect.value);
@@ -132,13 +147,14 @@ function calculate(){
   let start = new Date();
   start.setHours(h,m,0);
 
-  // tambah kerja 7.5 jam
+  // tambah kerja efektif 7.5 jam
   let end = new Date(start.getTime() + (7.5*60*60*1000));
 
-  // break tetap jam 12
+  // break tetap jam 12:00
   let breakStart = new Date(start);
   breakStart.setHours(12,0,0);
 
+  // jika melewati jam break → tambah 30 menit
   if(start < breakStart && end > breakStart){
     end = new Date(end.getTime() + (30*60*1000));
   }
@@ -147,7 +163,22 @@ function calculate(){
   let endM = String(end.getMinutes()).padStart(2,'0');
 
   document.getElementById("result").innerHTML =
-  `✅ Boleh pulang jam ${endH}:${endM}`;
+    `✅ Jam pulang kantor ${endH}:${endM}`;
+
+  // ===== GOOGLE CALENDAR LINK =====
+  let startISO = formatGoogleDate(start);
+  let endISO = formatGoogleDate(end);
+
+  let url =
+  `https://calendar.google.com/calendar/render?action=TEMPLATE`+
+  `&text=Jam Kerja Ramadhan`+
+  `&dates=${startISO}/${endISO}`+
+  `&details=Kerja efektif 7.5 jam (Ramadhan)`+
+  `&ctz=Asia/Jakarta`;
+
+  const btn = document.getElementById("calendarBtn");
+  btn.style.display="block";
+  btn.onclick = ()=> window.open(url, "_blank");
 }
 
 </script>
