@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- JUDUL TAB BROWSER -->
 <title>Jam Pulang TownlandJKT (puasa version)</title>
 
 <style>
@@ -28,17 +27,29 @@ body{
   width:460px;
 }
 
-h1{
-  margin-top:0;
-}
-
 .info{
   background:#f5f8ff;
   border-radius:10px;
   padding:15px;
   font-size:14px;
-  margin-bottom:25px;
+  margin-bottom:20px;
   line-height:1.6;
+}
+
+.nowTime{
+  font-size:14px;
+  margin-bottom:8px;
+  color:#555;
+}
+
+.small-btn{
+  font-size:12px;
+  padding:6px 10px;
+  margin-bottom:15px;
+  background:#e3e8ef;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
 }
 
 .row{
@@ -55,7 +66,7 @@ h1{
   font-size:16px;
 }
 
-button{
+button.main{
   width:100%;
   padding:14px;
   margin-top:18px;
@@ -74,8 +85,15 @@ button{
   font-weight:bold;
 }
 
+.countdown{
+  margin-top:10px;
+  font-size:18px;
+  color:#2c7be5;
+  font-weight:bold;
+}
+
 .label{
-  margin-top:15px;
+  margin-top:12px;
   font-size:16px;
 }
 
@@ -86,7 +104,6 @@ button{
 
 <div class="card">
 
-<!-- JUDUL HALAMAN -->
 <h1>🕌 Jam Pulang TownlandJKT (puasa version)</h1>
 
 <div class="info">
@@ -95,6 +112,14 @@ Jam masuk expected: <b>07:30</b><br>
 Istirahat: <b>12:00 – 12:30 (30 menit)</b><br>
 Total kerja efektif: <b>7 jam 30 menit</b>
 </div>
+
+<div class="nowTime">
+Jam sekarang (WIB): <b id="currentTime">--:--</b>
+</div>
+
+<button class="small-btn" onclick="applyNowTime()">
+Gunakan Jam Sekarang
+</button>
 
 <div class="label">Jam Masuk</div>
 <div class="row">
@@ -107,11 +132,12 @@ Total kerja efektif: <b>7 jam 30 menit</b>
 <select id="extraBreak" class="small-select"></select>
 </div>
 
-<button onclick="calculate()">Hitung Jam Pulang</button>
+<button class="main" onclick="calculate()">Hitung Jam Pulang</button>
 
 <div class="result" id="result"></div>
+<div class="countdown" id="countdown"></div>
 
-<button id="calendarBtn" style="display:none;">
+<button id="calendarBtn" class="main" style="display:none;">
 Tambah ke Google Calendar
 </button>
 
@@ -119,41 +145,53 @@ Tambah ke Google Calendar
 
 <script>
 
-// ===== JAM =====
-const hourSelect = document.getElementById("hour");
-for(let h=1; h<=24; h++){
-  let hh = String(h).padStart(2,'0');
-  let opt = document.createElement("option");
-  opt.value = hh;
-  opt.text = hh;
-  hourSelect.appendChild(opt);
+let countdownInterval=null;
+let targetEndTime=null;
+
+// ===== JAM SEKARANG WIB =====
+function getWIB(){
+  return new Date(
+    new Date().toLocaleString("en-US",{timeZone:"Asia/Jakarta"})
+  );
 }
-hourSelect.value = "07";
 
-// ===== MENIT =====
-const minuteSelect = document.getElementById("minute");
-for(let m=0; m<60; m++){
-  let mm = String(m).padStart(2,'0');
-  let opt = document.createElement("option");
-  opt.value = mm;
-  opt.text = mm;
-  minuteSelect.appendChild(opt);
+function updateClock(){
+  const now=getWIB();
+  document.getElementById("currentTime").innerText =
+    String(now.getHours()).padStart(2,'0') + ":" +
+    String(now.getMinutes()).padStart(2,'0');
 }
-minuteSelect.value = "30";
+setInterval(updateClock,1000);
+updateClock();
 
-// ===== EKSTRA ISTIRAHAT =====
-const extraBreakSelect = document.getElementById("extraBreak");
 
-let opt0 = document.createElement("option");
-opt0.value = 0;
-opt0.text = "0 menit";
-extraBreakSelect.appendChild(opt0);
+// ===== DROPDOWN =====
+const hourSelect=document.getElementById("hour");
+for(let h=1;h<=24;h++){
+  let hh=String(h).padStart(2,'0');
+  hourSelect.add(new Option(hh,hh));
+}
+hourSelect.value="07";
 
-for(let i=1; i<=60; i++){
-  let opt = document.createElement("option");
-  opt.value = i;
-  opt.text = i + " menit";
-  extraBreakSelect.appendChild(opt);
+const minuteSelect=document.getElementById("minute");
+for(let m=0;m<60;m++){
+  let mm=String(m).padStart(2,'0');
+  minuteSelect.add(new Option(mm,mm));
+}
+minuteSelect.value="30";
+
+const extraBreakSelect=document.getElementById("extraBreak");
+extraBreakSelect.add(new Option("0 menit",0));
+for(let i=1;i<=60;i++){
+  extraBreakSelect.add(new Option(i+" menit",i));
+}
+
+
+// ===== APPLY JAM SEKARANG =====
+function applyNowTime(){
+  const now=getWIB();
+  hourSelect.value=String(now.getHours()).padStart(2,'0');
+  minuteSelect.value=String(now.getMinutes()).padStart(2,'0');
 }
 
 
@@ -163,53 +201,69 @@ function formatGoogleDate(date){
 }
 
 
+// ===== COUNTDOWN =====
+function startCountdown(){
+
+  if(countdownInterval) clearInterval(countdownInterval);
+
+  countdownInterval=setInterval(()=>{
+
+    const now=getWIB();
+    let diff=targetEndTime-now;
+
+    if(diff<=0){
+      document.getElementById("countdown").innerHTML=
+        "🟢 Sudah boleh pulang!";
+      clearInterval(countdownInterval);
+      return;
+    }
+
+    let totalMinutes=Math.floor(diff/60000);
+    let hours=Math.floor(totalMinutes/60);
+    let minutes=totalMinutes%60;
+
+    document.getElementById("countdown").innerHTML=
+      `⏳ Pulang dalam ${hours} jam ${minutes} menit`;
+
+  },1000);
+}
+
+
 // ===== HITUNG =====
 function calculate(){
 
-  let h = Number(hourSelect.value);
-  let m = Number(minuteSelect.value);
-  let extraBreak = Number(extraBreakSelect.value);
+  const start=getWIB();
+  start.setHours(hourSelect.value,minuteSelect.value,0);
 
-  let start = new Date();
-  start.setHours(h,m,0);
+  let end=new Date(start.getTime()+7.5*60*60*1000);
 
-  // kerja efektif 7.5 jam
-  let end = new Date(start.getTime() + (7.5*60*60*1000));
-
-  // break tetap jam 12
-  let breakStart = new Date(start);
+  let breakStart=new Date(start);
   breakStart.setHours(12,0,0);
 
-  if(start < breakStart && end > breakStart){
-    end = new Date(end.getTime() + (30*60*1000));
+  if(start<breakStart && end>breakStart){
+    end=new Date(end.getTime()+30*60*1000);
   }
 
-  // ekstra istirahat
-  if(extraBreak > 0){
-    end = new Date(end.getTime() + (extraBreak*60*1000));
-  }
+  end=new Date(end.getTime()+extraBreakSelect.value*60*1000);
 
-  let endH = String(end.getHours()).padStart(2,'0');
-  let endM = String(end.getMinutes()).padStart(2,'0');
+  targetEndTime=end;
+  startCountdown();
 
-  // TEXT DIGANTI DI SINI
-  document.getElementById("result").innerHTML =
+  let endH=String(end.getHours()).padStart(2,'0');
+  let endM=String(end.getMinutes()).padStart(2,'0');
+
+  document.getElementById("result").innerHTML=
     `✅ Jam pulang kantor ${endH}:${endM}`;
 
-  // GOOGLE CALENDAR
-  let startISO = formatGoogleDate(start);
-  let endISO = formatGoogleDate(end);
-
-  let url =
+  let url=
   `https://calendar.google.com/calendar/render?action=TEMPLATE`+
-  `&text=Jam Kerja TownlandJKT (puasa version)`+
-  `&dates=${startISO}/${endISO}`+
-  `&details=Kerja Ramadhan 7.5 jam + ekstra istirahat`+
+  `&text=Jam Pulang TownlandJKT (puasa version)`+
+  `&dates=${formatGoogleDate(start)}/${formatGoogleDate(end)}`+
   `&ctz=Asia/Jakarta`;
 
-  const btn = document.getElementById("calendarBtn");
+  const btn=document.getElementById("calendarBtn");
   btn.style.display="block";
-  btn.onclick = ()=> window.open(url, "_blank");
+  btn.onclick=()=>window.open(url,"_blank");
 }
 
 </script>
