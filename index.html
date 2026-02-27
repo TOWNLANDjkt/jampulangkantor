@@ -17,23 +17,19 @@ body{
   font-family:Arial, sans-serif;
 }
 
-/* CARD */
 .card{
   background:white;
   padding:50px;
   border-radius:18px;
   box-shadow:0 15px 40px rgba(0,0,0,0.12);
   text-align:center;
-  width:420px;
+  width:440px;
 }
 
-/* TITLE */
 h1{
   margin-top:0;
-  margin-bottom:10px;
 }
 
-/* INFO BOX */
 .info{
   background:#f5f8ff;
   border-radius:10px;
@@ -43,7 +39,11 @@ h1{
   line-height:1.6;
 }
 
-/* INPUT */
+.row{
+  display:flex;
+  gap:10px;
+}
+
 select, button{
   width:100%;
   padding:14px;
@@ -53,7 +53,6 @@ select, button{
   font-size:18px;
 }
 
-/* BUTTON */
 button{
   background:#2c7be5;
   color:white;
@@ -62,7 +61,6 @@ button{
   font-weight:bold;
 }
 
-/* RESULT */
 .result{
   margin-top:25px;
   font-size:24px;
@@ -71,7 +69,6 @@ button{
 
 .label{
   font-size:16px;
-  margin-top:10px;
 }
 
 </style>
@@ -81,7 +78,7 @@ button{
 
 <div class="card">
 
-<h1>🕌 Jam Pulang Ramadhan</h1>
+<h1>🕌 Jam Pulang Ramadhan TOWNLANDJKT</h1>
 
 <div class="info">
 <b>Ketentuan Ramadhan:</b><br>
@@ -90,8 +87,12 @@ Istirahat: <b>12:00 – 12:30 (30 menit)</b><br>
 Total kerja efektif: <b>7 jam 30 menit</b>
 </div>
 
-<div class="label">Pilih Jam Masuk</div>
-<select id="startTime"></select>
+<div class="label">Jam Masuk</div>
+
+<div class="row">
+<select id="hour"></select>
+<select id="minute"></select>
+</div>
 
 <button onclick="calculate()">Hitung Jam Pulang</button>
 
@@ -101,33 +102,40 @@ Total kerja efektif: <b>7 jam 30 menit</b>
 
 <script>
 
-// ===== DROPDOWN JAM =====
-const select = document.getElementById("startTime");
+// ===== DROPDOWN JAM 01-24 =====
+const hourSelect = document.getElementById("hour");
+for(let h=1; h<=24; h++){
+  let hh = String(h).padStart(2,'0');
+  let opt = document.createElement("option");
+  opt.value = hh;
+  opt.text = hh;
+  hourSelect.appendChild(opt);
+}
 
-for(let h=6; h<=12; h++){
-  for(let m of ["00","15","30","45"]){
-    let hh = String(h).padStart(2,'0');
-    let option = document.createElement("option");
-    option.value = `${hh}:${m}`;
-    option.text = `${hh}:${m}`;
-    select.appendChild(option);
-  }
+// ===== DROPDOWN MENIT 00-59 =====
+const minuteSelect = document.getElementById("minute");
+for(let m=0; m<60; m++){
+  let mm = String(m).padStart(2,'0');
+  let opt = document.createElement("option");
+  opt.value = mm;
+  opt.text = mm;
+  minuteSelect.appendChild(opt);
 }
 
 
 // ===== HITUNG =====
 function calculate(){
 
-  const value = select.value;
-  let [h,m] = value.split(":").map(Number);
+  let h = Number(hourSelect.value);
+  let m = Number(minuteSelect.value);
 
   let start = new Date();
   start.setHours(h,m,0);
 
-  // kerja 7.5 jam
+  // tambah kerja 7.5 jam
   let end = new Date(start.getTime() + (7.5*60*60*1000));
 
-  // break jam 12
+  // break tetap jam 12
   let breakStart = new Date(start);
   breakStart.setHours(12,0,0);
 
